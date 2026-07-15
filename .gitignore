@@ -47,7 +47,6 @@ ehthumbs.db
 pnpm-debug.log
 npm-debug.log
 
-build/
 release/
 
 playwright-report/
