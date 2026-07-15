@@ -40,7 +40,7 @@ files:
 asarUnpack:
   - resources/**
   - node_modules/@node-rs/**/*.node
-afterPack: build/after-pack.cjs
+afterPack: build/after-pack.mjs
 extraResources:
   - from: build/icons/icon.ico
     to: icons/icon.ico
