@@ -27,6 +27,7 @@
     "build:unpack": "pnpm run build && electron-builder --dir",
     "build:win": "pnpm run build && electron-builder --win",
     "build:mac": "pnpm run build && electron-builder --mac",
+    "build:mac:x64": "pnpm run build && electron-builder --mac --x64",
     "build:linux": "pnpm run build && electron-builder --linux",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

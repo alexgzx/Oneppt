@@ -98,7 +98,7 @@ jobs:
         run: npx playwright install-deps
 
       - name: Build and package macOS for testing
-        run: pnpm run build:mac
+        run: pnpm run build:mac:x64
 
       - name: Disable macOS gatekeeper
         run: sudo spctl --master-disable
