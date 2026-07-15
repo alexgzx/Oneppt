@@ -65,7 +65,7 @@ jobs:
         run: |
           set +e
           APP_NAME="OnePPT"
-          APP_BIN="release/mac/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+          APP_BIN="dist/mac/$APP_NAME.app/Contents/MacOS/$APP_NAME"
           PORT=20128
           LOG="$RUNNER_TEMP/server.log"
           mkdir -p "$RUNNER_TEMP/verify"
