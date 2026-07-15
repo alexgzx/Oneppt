@@ -68,6 +68,7 @@ jobs:
           path: release/*.dmg
 
   test-macos:
+    needs: build-macos
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -96,8 +97,8 @@ jobs:
       - name: Build and package macOS for testing
         run: pnpm run build:mac:x64
 
-      - name: Disable macOS gatekeeper
-        run: sudo spctl --master-disable
+      - name: Remove quarantine attribute
+        run: xattr -cr release/*.app
 
       - name: Run E2E smoke tests
         run: npx playwright test tests/e2e/smoke.test.ts
