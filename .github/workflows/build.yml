@@ -8,6 +8,10 @@ on:
   release:
     types: [created]
 
+env:
+  ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
+  ELECTRON_BUILDER_BINARIES_MIRROR: https://npmmirror.com/mirrors/electron-builder-binaries/
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -19,6 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -26,13 +31,10 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Build
-        run: pnpm build
-
-      - name: Package Windows x64
-        run: pnpm electron:build --win --x64
+      - name: Build and package Windows x64
+        run: pnpm run build:win
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -50,6 +52,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -57,13 +60,10 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Build
-        run: pnpm build
-
-      - name: Package macOS ARM64
-        run: pnpm electron:build --mac --arm64
+      - name: Build and package macOS ARM64
+        run: pnpm run build:mac
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -81,6 +81,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -88,7 +89,7 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright
         run: npx playwright install chromium
@@ -96,11 +97,8 @@ jobs:
       - name: Install Playwright system dependencies
         run: npx playwright install-deps
 
-      - name: Build
-        run: pnpm build
-
-      - name: Package macOS for testing
-        run: pnpm electron:build --mac --x64
+      - name: Build and package macOS for testing
+        run: pnpm run build:mac
 
       - name: Disable macOS gatekeeper
         run: sudo spctl --master-disable
