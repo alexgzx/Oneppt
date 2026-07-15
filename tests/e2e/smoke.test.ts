@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test'
 import * as path from 'path'
+import { fileURLToPath } from 'url'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const APP_PATH = path.join(__dirname, '..', '..', 'out', 'main', 'index.js')
 
 test.describe('OnePPT Smoke Tests', () => {
