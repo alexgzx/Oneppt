@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import 'playwright-electron'
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -16,8 +17,7 @@ export default defineConfig({
     {
       name: 'electron',
       use: {
-        ...devices['Desktop Chrome'],
-        channel: 'chrome',
+        ...devices['Desktop Electron'],
       },
     },
   ],
