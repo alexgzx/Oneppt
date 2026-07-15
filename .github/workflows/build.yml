@@ -61,56 +61,75 @@ jobs:
       - name: Build and package macOS ARM64
         run: pnpm run build:mac
 
+      - name: 🔥 macOS E2E HTTP smoke test
+        run: |
+          set +e
+          APP_NAME="OnePPT"
+          APP_BIN="release/mac/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+          PORT=20128
+          LOG="$RUNNER_TEMP/server.log"
+          mkdir -p "$RUNNER_TEMP/verify"
+
+          echo "▶️ 后台启动 $APP_BIN ..."
+          script -q /dev/null "$APP_BIN" > "$LOG" 2>&1 &
+          PID=$!
+          echo "启动 PID=$PID"
+
+          echo "⏳ 轮询端口 $PORT（最多 120s）..."
+          UP=0
+          for i in $(seq 1 120); do
+            if curl -fsS "http://127.0.0.1:$PORT/" -o /dev/null 2>/dev/null; then
+              echo "✅ Server up after ${i}s"
+              UP=1
+              break
+            fi
+            if ! kill -0 $PID 2>/dev/null; then
+              echo "❌ Launcher 进程提前退出"
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$UP" != "1" ]; then
+            echo "❌ HTTP 端点超时未就绪"
+            echo "---- 服务日志（后 200 行）----"
+            tail -200 "$LOG" || true
+            cp "$LOG" "$RUNNER_TEMP/verify/server.log" 2>/dev/null || true
+            screencapture -x -t png "$RUNNER_TEMP/verify/00-failed.png" 2>/dev/null || true
+            kill $PID 2>/dev/null
+            pkill -f "$APP_NAME.app" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "🔎 校验关键路由"
+          set -e
+          curl -fsS -o "$RUNNER_TEMP/verify/home.html" -w "GET / → HTTP %{http_code}  (%{size_download} bytes)\n" "http://127.0.0.1:$PORT/"
+
+          echo "🧹 优雅退出"
+          kill $PID 2>/dev/null
+          for i in 1 2 3 4 5; do
+            kill -0 $PID 2>/dev/null || break
+            sleep 1
+          done
+          kill -9 $PID 2>/dev/null || true
+          pkill -f "$APP_NAME.app" 2>/dev/null || true
+
+          echo "✅ E2E smoke test 通过"
+
+      - name: 📸 Upload macOS verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-verification
+          path: ${{ runner.temp }}/verify/**
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
           path: release/*.dmg
-
-  test-macos:
-    needs: build-macos
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Install Playwright
-        run: npx playwright install chromium
-
-      - name: Install Playwright system dependencies
-        run: npx playwright install-deps
-
-      - name: Build application
-        run: pnpm run build
-
-      - name: Run E2E smoke tests
-        run: npx playwright test tests/e2e/smoke.test.ts
-
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report
-          path: playwright-report/
-
-      - name: Upload test screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-screenshots
-          path: test-results/
 
   publish-release:
     if: github.event_name == 'release' && github.event.action == 'created'
