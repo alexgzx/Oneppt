@@ -1,0 +1,134 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package Windows x64
+        run: pnpm electron:build --win --x64
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: release/*.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package macOS ARM64
+        run: pnpm electron:build --mac --arm64
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: release/*.dmg
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Install Playwright system dependencies
+        run: npx playwright install-deps
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package macOS for testing
+        run: pnpm electron:build --mac --x64
+
+      - name: Disable macOS gatekeeper
+        run: sudo spctl --master-disable
+
+      - name: Run E2E smoke tests
+        run: npx playwright test tests/e2e/smoke.test.ts
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: playwright-report/
+
+      - name: Upload test screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: test-results/
+
+  publish-release:
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-x64
+          path: release/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm64
+          path: release/
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
