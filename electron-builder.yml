@@ -48,6 +48,8 @@ extraResources:
     to: icons/32x32.png
   - from: resources/icons/16x16.png
     to: icons/16x16.png
+  - from: resources/styles
+    to: resources/styles
 forceCodeSigning: false
 win:
   target:

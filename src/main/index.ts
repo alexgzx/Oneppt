@@ -262,7 +262,9 @@ function createWindow(): BrowserWindow {
 
   window.on('ready-to-show', () => {
     window.show()
-    window.webContents.openDevTools({ mode: 'detach' })
+    if (is.dev) {
+      window.webContents.openDevTools({ mode: 'detach' })
+    }
   })
 
   window.webContents.setWindowOpenHandler((details) => {
