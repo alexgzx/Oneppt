@@ -73,13 +73,24 @@ jobs:
 
       - name: Verify native modules are unpacked
         run: |
-          nodeFiles=$(find "dist/mac-universal/OnePPT.app/Contents/Resources/app.asar.unpacked/node_modules" -name "*.node" 2>/dev/null)
-          if [ -z "$nodeFiles" ]; then
-            echo "ERROR: No .node files found in app.asar.unpacked/node_modules - native modules may not be properly unpacked!"
+          found=false
+          for arch in arm64 x64; do
+            appPath="dist/mac-${arch}/OnePPT.app/Contents/Resources/app.asar.unpacked/node_modules"
+            if [ -d "$appPath" ]; then
+              nodeFiles=$(find "$appPath" -name "*.node" 2>/dev/null)
+              if [ -n "$nodeFiles" ]; then
+                echo "SUCCESS: Found native modules in ${arch}:"
+                echo "$nodeFiles"
+                found=true
+              fi
+            fi
+          done
+          if [ "$found" = false ]; then
+            echo "ERROR: No .node files found in any app.asar.unpacked/node_modules - checking available directories..."
+            ls -la dist/ 2>/dev/null || echo "dist/ directory doesn't exist"
+            find dist -name "*.app" -type d 2>/dev/null || echo "No .app files found"
             exit 1
           fi
-          echo "SUCCESS: Found native modules in app.asar.unpacked:"
-          echo "$nodeFiles"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4

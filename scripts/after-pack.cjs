@@ -11,19 +11,20 @@ const sourceFileNameFor = (platformName, archName) => {
 
 const targetFileNameFor = (platformName) => (platformName === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
 
-function isPlatformCompatible(fileName, platformName, archName) {
-  if (fileName.includes('darwin') && platformName !== 'darwin') return false
-  if (fileName.includes('win32') && platformName !== 'win32') return false
-  if (fileName.includes('linux') && platformName !== 'linux') return false
-
-  if (fileName.includes('arm64') && archName !== 'arm64') return false
-  if (fileName.includes('x64') && archName !== 'x64') return false
-  if (fileName.includes('ia32') && archName !== 'ia32') return false
-
-  return true
+function shouldSkipFile(fileName, platformName) {
+  const platformDirs = {
+    darwin: ['win32', 'linux'],
+    win32: ['darwin', 'linux'],
+    linux: ['darwin', 'win32']
+  }
+  const skipPlatforms = platformDirs[platformName] || []
+  for (const skipPlatform of skipPlatforms) {
+    if (fileName.includes(skipPlatform)) return true
+  }
+  return false
 }
 
-async function findNodeFiles(dir, basePath, platformName, archName) {
+async function findNodeFiles(dir, basePath, platformName) {
   const nodeFiles = []
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true })
@@ -31,11 +32,11 @@ async function findNodeFiles(dir, basePath, platformName, archName) {
       const fullPath = path.join(dir, entry.name)
       if (entry.isDirectory()) {
         if (entry.name === 'node_modules' && dir.includes('.pnpm')) continue
-        if (!isPlatformCompatible(entry.name, platformName, archName)) continue
-        const childFiles = await findNodeFiles(fullPath, basePath, platformName, archName)
+        if (shouldSkipFile(entry.name, platformName)) continue
+        const childFiles = await findNodeFiles(fullPath, basePath, platformName)
         nodeFiles.push(...childFiles)
       } else if (entry.isFile() && entry.name.endsWith('.node')) {
-        if (!isPlatformCompatible(entry.name, platformName, archName)) continue
+        if (shouldSkipFile(entry.name, platformName)) continue
         try {
           const realPath = await fs.realpath(fullPath)
           nodeFiles.push({ source: realPath, relative: path.relative(basePath, fullPath) })
@@ -54,9 +55,8 @@ async function copyNativeModules(context) {
   const unpackedDir = path.join(resourcesDir, 'app.asar.unpacked')
   const nodeModulesPath = path.join(projectDir, 'node_modules')
   const platformName = context.electronPlatformName
-  const archName = String(context.arch)
 
-  const nodeFiles = await findNodeFiles(nodeModulesPath, nodeModulesPath, platformName, archName)
+  const nodeFiles = await findNodeFiles(nodeModulesPath, nodeModulesPath, platformName)
 
   if (nodeFiles.length === 0) {
     console.log('[afterPack] No native modules (.node files) found in node_modules')
