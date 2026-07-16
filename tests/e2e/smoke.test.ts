@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { _electron as electron } from 'playwright'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -6,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const APP_PATH = path.join(__dirname, '..', '..', 'out', 'main', 'index.js')
 
 test.describe('OnePPT Smoke Tests', () => {
-  test('应用启动验证', async ({ electron }) => {
+  test('应用启动验证', async () => {
     const app = await electron.launch({ args: [APP_PATH] })
     const window = await app.firstWindow()
     const title = await window.title()
@@ -14,7 +15,7 @@ test.describe('OnePPT Smoke Tests', () => {
     await app.close()
   })
 
-  test('主界面渲染验证', async ({ electron }) => {
+  test('主界面渲染验证', async () => {
     const app = await electron.launch({ args: [APP_PATH] })
     const window = await app.firstWindow()
     await window.waitForTimeout(5000)
@@ -23,7 +24,7 @@ test.describe('OnePPT Smoke Tests', () => {
     await app.close()
   })
 
-  test('应用关闭验证', async ({ electron }) => {
+  test('应用关闭验证', async () => {
     const app = await electron.launch({ args: [APP_PATH] })
     await app.close()
     expect(app.isRunning()).toBe(false)
