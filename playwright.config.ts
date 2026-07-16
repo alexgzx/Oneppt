@@ -16,7 +16,7 @@ export default defineConfig({
     {
       name: 'electron',
       use: {
-        ...devices['Desktop Electron'],
+        electron: {},
       },
     },
   ],
