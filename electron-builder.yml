@@ -8,6 +8,12 @@ files:
   - resources/google-fonts/**
   - resources/anime.v4.js
   - resources/chart.v4.js
+  - resources/tailwindcss.v3.js
+  - resources/index-runtime.js
+  - resources/ppt-runtime.js
+  - resources/slide-pack-windows-amd64.exe
+  - resources/slide-pack-darwin-amd64
+  - resources/slide-pack-darwin-arm64
   - '!**/.DS_Store'
   - '!**/._*'
   # ffmpeg is copied by scripts/after-pack.cjs per platform so unused binaries are not bundled.

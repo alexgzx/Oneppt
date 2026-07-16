@@ -29,6 +29,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Create ffmpeg directory
+        run: New-Item -ItemType Directory -Path "resources/ffmpeg" -Force
+
+      - name: Download ffmpeg for Windows
+        run: |
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "resources/ffmpeg/ffmpeg-windows.zip" -UseBasicParsing
+          Expand-Archive -Path "resources/ffmpeg/ffmpeg-windows.zip" -DestinationPath "resources/ffmpeg/windows-temp" -Force
+          $ffmpegExe = Get-ChildItem -Path "resources/ffmpeg/windows-temp" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          Copy-Item -Path $ffmpegExe.FullName -Destination "resources/ffmpeg/ffmpeg.exe" -Force
+          Remove-Item -Path "resources/ffmpeg/windows-temp" -Recurse -Force
+          Remove-Item -Path "resources/ffmpeg/ffmpeg-windows.zip" -Force
+          Write-Host "Windows ffmpeg downloaded successfully"
+
       - name: Build and package Windows x64
         run: pnpm run build:win
 
@@ -67,6 +80,23 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Create ffmpeg directory
+        run: mkdir -p resources/ffmpeg
+
+      - name: Download ffmpeg for macOS
+        run: |
+          curl -L -o resources/ffmpeg/ffmpeg-macos.zip "https://evermeet.cx/ffmpeg/get/zip"
+          unzip -o resources/ffmpeg/ffmpeg-macos.zip -d resources/ffmpeg/macos-intel-temp
+          cp resources/ffmpeg/macos-intel-temp/ffmpeg resources/ffmpeg/ffmpeg-intel
+          rm -rf resources/ffmpeg/macos-intel-temp resources/ffmpeg/ffmpeg-macos.zip
+          
+          curl -L -o resources/ffmpeg/ffmpeg-arm.zip "https://ffmpeg.martin-riedl.de/download/macos/arm64/1779038698_N-124530-gf435ce22e1/ffmpeg.zip"
+          unzip -o resources/ffmpeg/ffmpeg-arm.zip -d resources/ffmpeg/macos-arm-temp
+          cp resources/ffmpeg/macos-arm-temp/ffmpeg resources/ffmpeg/ffmpeg-arm
+          rm -rf resources/ffmpeg/macos-arm-temp resources/ffmpeg/ffmpeg-arm.zip
+          
+          echo "macOS ffmpeg downloaded successfully"
 
       - name: Build and package macOS ARM64
         run: pnpm run build:mac
