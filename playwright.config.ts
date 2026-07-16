@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import 'playwright-electron'
 
 export default defineConfig({
   testDir: './tests/e2e',
