@@ -13,7 +13,22 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['electron', 'better-sqlite3', '@node-rs/jieba', '@libsql/client', 'openai', '@langchain/openai', '@langchain/google-genai', '@langchain/anthropic', '@google/genai']
+        external: [
+          'electron',
+          'better-sqlite3',
+          '@node-rs/jieba',
+          /@node-rs\/.*/,
+          '@libsql/client',
+          /@libsql\/.*/,
+          'libsql',
+          '@neon-rs/load',
+          /@neon-rs\/.*/,
+          'openai',
+          '@langchain/openai',
+          '@langchain/google-genai',
+          '@langchain/anthropic',
+          '@google/genai'
+        ]
       }
     }
   },
@@ -21,6 +36,26 @@ export default defineConfig({
     resolve: {
       alias: {
         '@shared': resolve('src/shared')
+      }
+    },
+    build: {
+      rollupOptions: {
+        external: [
+          'electron',
+          'better-sqlite3',
+          '@node-rs/jieba',
+          /@node-rs\/.*/,
+          '@libsql/client',
+          /@libsql\/.*/,
+          'libsql',
+          '@neon-rs/load',
+          /@neon-rs\/.*/,
+          'openai',
+          '@langchain/openai',
+          '@langchain/google-genai',
+          '@langchain/anthropic',
+          '@google/genai'
+        ]
       }
     }
   },

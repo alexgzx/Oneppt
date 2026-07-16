@@ -42,6 +42,8 @@ asarUnpack:
   - node_modules/@node-rs/**/*.node
   - node_modules/better-sqlite3/**/*.node
   - node_modules/@libsql/**/*.node
+  - node_modules/libsql/**/*.node
+  - node_modules/@neon-rs/**/*.node
 afterPack: scripts/after-pack.cjs
 extraResources:
   - from: resources/icons/icon.ico
