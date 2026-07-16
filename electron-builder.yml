@@ -4,6 +4,10 @@ directories:
   buildResources: resources
 files:
   - '**/*'
+  - resources/styles/**
+  - resources/google-fonts/**
+  - resources/anime.v4.js
+  - resources/chart.v4.js
   - '!**/.DS_Store'
   - '!**/._*'
   # ffmpeg is copied by scripts/after-pack.cjs per platform so unused binaries are not bundled.
