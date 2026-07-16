@@ -15,7 +15,6 @@ export default defineConfig({
       rollupOptions: {
         external: [
           'electron',
-          'better-sqlite3',
           '@node-rs/jieba',
           /@node-rs\/.*/,
           '@libsql/client',
@@ -42,7 +41,6 @@ export default defineConfig({
       rollupOptions: {
         external: [
           'electron',
-          'better-sqlite3',
           '@node-rs/jieba',
           /@node-rs\/.*/,
           '@libsql/client',
