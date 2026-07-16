@@ -13,7 +13,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['electron', 'better-sqlite3', 'openai', '@langchain/openai', '@langchain/google-genai', '@langchain/anthropic', '@google/genai']
+        external: ['electron', 'better-sqlite3', '@node-rs/jieba', 'openai', '@langchain/openai', '@langchain/google-genai', '@langchain/anthropic', '@google/genai']
       }
     }
   },
