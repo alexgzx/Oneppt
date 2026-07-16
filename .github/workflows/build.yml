@@ -32,6 +32,16 @@ jobs:
       - name: Build and package Windows x64
         run: pnpm run build:win
 
+      - name: Verify native modules are unpacked
+        run: |
+          $nodeFiles = Get-ChildItem -Path "dist/win-unpacked/resources/app.asar.unpacked/node_modules" -Recurse -Filter "*.node" -ErrorAction SilentlyContinue
+          if (-not $nodeFiles) {
+            Write-Error "ERROR: No .node files found in app.asar.unpacked/node_modules - native modules may not be properly unpacked!"
+            exit 1
+          }
+          Write-Host "SUCCESS: Found $($nodeFiles.Count) native modules in app.asar.unpacked:"
+          $nodeFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +70,16 @@ jobs:
 
       - name: Build and package macOS ARM64
         run: pnpm run build:mac
+
+      - name: Verify native modules are unpacked
+        run: |
+          nodeFiles=$(find "dist/mac-universal/OnePPT.app/Contents/Resources/app.asar.unpacked/node_modules" -name "*.node" 2>/dev/null)
+          if [ -z "$nodeFiles" ]; then
+            echo "ERROR: No .node files found in app.asar.unpacked/node_modules - native modules may not be properly unpacked!"
+            exit 1
+          fi
+          echo "SUCCESS: Found native modules in app.asar.unpacked:"
+          echo "$nodeFiles"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4

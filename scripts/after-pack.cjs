@@ -11,7 +11,76 @@ const sourceFileNameFor = (platformName, archName) => {
 
 const targetFileNameFor = (platformName) => (platformName === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
 
+function isPlatformCompatible(fileName, platformName, archName) {
+  if (fileName.includes('darwin') && platformName !== 'darwin') return false
+  if (fileName.includes('win32') && platformName !== 'win32') return false
+  if (fileName.includes('linux') && platformName !== 'linux') return false
+
+  if (fileName.includes('arm64') && archName !== 'arm64') return false
+  if (fileName.includes('x64') && archName !== 'x64') return false
+  if (fileName.includes('ia32') && archName !== 'ia32') return false
+
+  return true
+}
+
+async function findNodeFiles(dir, basePath, platformName, archName) {
+  const nodeFiles = []
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (entry.name === 'node_modules' && dir.includes('.pnpm')) continue
+        if (!isPlatformCompatible(entry.name, platformName, archName)) continue
+        const childFiles = await findNodeFiles(fullPath, basePath, platformName, archName)
+        nodeFiles.push(...childFiles)
+      } else if (entry.isFile() && entry.name.endsWith('.node')) {
+        if (!isPlatformCompatible(entry.name, platformName, archName)) continue
+        try {
+          const realPath = await fs.realpath(fullPath)
+          nodeFiles.push({ source: realPath, relative: path.relative(basePath, fullPath) })
+        } catch {
+          nodeFiles.push({ source: fullPath, relative: path.relative(basePath, fullPath) })
+        }
+      }
+    }
+  } catch {}
+  return nodeFiles
+}
+
+async function copyNativeModules(context) {
+  const projectDir = context.packager.projectDir
+  const resourcesDir = context.packager.getResourcesDir(context.appOutDir)
+  const unpackedDir = path.join(resourcesDir, 'app.asar.unpacked')
+  const nodeModulesPath = path.join(projectDir, 'node_modules')
+  const platformName = context.electronPlatformName
+  const archName = String(context.arch)
+
+  const nodeFiles = await findNodeFiles(nodeModulesPath, nodeModulesPath, platformName, archName)
+
+  if (nodeFiles.length === 0) {
+    console.log('[afterPack] No native modules (.node files) found in node_modules')
+    return
+  }
+
+  console.log(`[afterPack] Found ${nodeFiles.length} native modules to copy`)
+
+  for (const { source, relative } of nodeFiles) {
+    const targetPath = path.join(unpackedDir, 'node_modules', relative)
+    const targetDir = path.dirname(targetPath)
+
+    try {
+      await fs.mkdir(targetDir, { recursive: true })
+      await fs.copyFile(source, targetPath)
+      console.log(`[afterPack] Copied native module: ${relative}`)
+    } catch (error) {
+      console.warn(`[afterPack] Failed to copy native module ${relative}:`, error.message)
+    }
+  }
+}
+
 exports.default = async function afterPack(context) {
+  await copyNativeModules(context)
   const platformName = context.electronPlatformName
   const archName = String(context.arch)
   const sourceFileName = sourceFileNameFor(platformName, archName)
