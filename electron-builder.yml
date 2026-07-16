@@ -3,6 +3,7 @@ productName: OnePPT
 directories:
   buildResources: resources
 files:
+  - '**/*'
   - '!**/.DS_Store'
   - '!**/._*'
   # ffmpeg is copied by scripts/after-pack.cjs per platform so unused binaries are not bundled.
@@ -14,7 +15,7 @@ files:
   - '!**/.git/**'
   - '!src/**'
   - '!tools/**'
-  
+
   - '!assets/**'
   - '!docs/**'
   - '!doc/**'
@@ -48,8 +49,6 @@ extraResources:
     to: icons/32x32.png
   - from: resources/icons/16x16.png
     to: icons/16x16.png
-  - from: resources/styles
-    to: resources/styles
 forceCodeSigning: false
 win:
   target:

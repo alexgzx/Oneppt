@@ -7,7 +7,7 @@ import { allowLocalAssetRoot } from '../ipc/io/assets-handlers'
 export function resolveBundledStylesSourcePath(): string {
   return is.dev
     ? path.join(process.cwd(), 'resources', 'styles')
-    : path.join(process.resourcesPath, 'resources', 'styles')
+    : path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'styles')
 }
 
 export function resolveInstalledStylesPath(): string {
