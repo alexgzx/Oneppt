@@ -14,6 +14,9 @@ files:
   - resources/slide-pack-windows-amd64.exe
   - resources/slide-pack-darwin-amd64
   - resources/slide-pack-darwin-arm64
+  - resources/katex/**
+  - resources/icons/**
+  - resources/skills/**
   - '!**/.DS_Store'
   - '!**/._*'
   # ffmpeg is copied by scripts/after-pack.cjs per platform so unused binaries are not bundled.
