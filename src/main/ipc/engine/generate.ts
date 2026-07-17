@@ -901,7 +901,8 @@ export const runDeepAgentDeckGeneration = async (args: {
   const totalPages = pageRefs.length
   const clampProgress = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
   const pageSummaryMap = new Map<number, string>()
-  const useDualWorkerQueue = totalPages >= 3
+  const isFreeProvider = ['opencode', 'kilo'].includes(args.provider.toLowerCase())
+  const useDualWorkerQueue = !isFreeProvider && totalPages >= 3
   const pageProgressMap = new Map<string, number>()
   let renderingProgress = 0
   const toRenderingProgress = (target: number): number => {
@@ -1134,7 +1135,11 @@ export const runDeepAgentDeckGeneration = async (args: {
     args.agentManager.setPageAgent(args.sessionId, page.pageId, deepAgent)
 
     try {
-      const combinedSignal = modelCallSignal(args.modelTimeoutMs, 'agent', args.signal)
+      const freeModelTimeoutMs = 15 * 60_000
+      const effectiveTimeoutMs = isFreeProvider
+        ? args.modelTimeoutMs ?? freeModelTimeoutMs
+        : args.modelTimeoutMs
+      const combinedSignal = modelCallSignal(effectiveTimeoutMs, 'agent', args.signal)
       const stream = await deepAgent.stream(
         {
           messages: [

@@ -69,27 +69,27 @@ export const buildOpenAIModelOptions = ({
     thinkingParameterMode
   })
 
+  const isFree = isFreeModelProvider(provider || '')
+  const requiresAuth = requiresAuthOverride(provider || '')
+
+  const resolvedApiKey = requiresAuth
+    ? ''
+    : apiKey || 'placeholder'
+
   const configuration = resolvedBaseUrl
     ? {
         baseURL: resolvedBaseUrl,
-        ...(requiresAuthOverride(provider || '') ? { defaultHeaders: { Authorization: '' } } : {})
+        ...(requiresAuth ? { defaultHeaders: { Authorization: '' } } : {})
       }
     : undefined
-
-  const resolvedApiKey = requiresAuthOverride(provider || '')
-    ? undefined
-    : apiKey || 'placeholder'
 
   const result: Record<string, unknown> = {
     model,
     ...temperatureOptions,
     maxTokens,
+    apiKey: resolvedApiKey,
     configuration,
     modelKwargs
-  }
-
-  if (resolvedApiKey !== undefined) {
-    result.apiKey = resolvedApiKey
   }
 
   return result as {
